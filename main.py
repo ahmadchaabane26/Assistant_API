@@ -7,7 +7,7 @@ from datetime import datetime
 # The approach taken to this is manually coding the process done on  asistant as if it was openAI website. We are making sure the same process is being coded.
 
 load_dotenv()
-# popenai.api_key = os.environ.get("sk-proj-IMrsBiTb79GOTH0c91J6T3BlbkFJOMW9Rr6Spay0V0OYQaXk")
+# popenai.api_key = os.environ.get(""")
 # This step includes reqtieriving the key and welcoming the AI
 
 client = openai.OpenAI()
@@ -61,7 +61,7 @@ thread_id = "thread_DSzJZ3JyRTrKhHHPA3r7hikz"
 
 # Create a message 
 
-message = "How many reps do I need to do to build lean muscles?"
+message = "Where do I start?"
 #this is where you can change the message
 message = client.beta.threads.messages.create(
     thread_id= thread_id,
