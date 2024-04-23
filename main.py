@@ -119,4 +119,4 @@ run_steps = client.beta.threads.runs.steps.list(
     thread_id=thread_id,
     run_id=run.id
 )
-print(f"steps:: {run_steps.data[0]}")
+print(f"steps:: {run_steps.data}")
