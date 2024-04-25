@@ -60,63 +60,69 @@ asistant_id = "asst_7ys3ITPpdVITiNIQ8BP5dzbk"
 thread_id = "thread_DSzJZ3JyRTrKhHHPA3r7hikz"
 
 # Create a message 
+while True:
+    message = input("How can I help your fitness journey (Type 'done' to exit): ")
 
-message = "Where do I start?"
-#this is where you can change the message
-message = client.beta.threads.messages.create(
-    thread_id= thread_id,
-    role="user",
-    content=message
-)
+        # Check if user wants to exit
+    if message.lower() == "done":
+        print("Thank you for using me! Good luck on your journey!")
+        break
 
-# To run our assistant 
+    #this is where you can change the message
+    message = client.beta.threads.messages.create(
+        thread_id= thread_id,
+        role="user",
+        content=message
+    )
 
-run = client.beta.threads.runs.create(
-    thread_id=thread_id,
-    assistant_id=asistant_id,
-    instructions="Please address the user as Ahmad Chaabane",
-)
+    # To run our assistant 
 
-# run time / response / Error message / message to user while waiting
-def wait_for_run_completion(client, thread_id, run_id, sleep_interval=5):
-    """
+    run = client.beta.threads.runs.create(
+        thread_id=thread_id,
+        assistant_id=asistant_id,
+        instructions="Please address the user as Ahmad Chaabane",
+    )
 
-    Waits for a run to complete and prints the elapsed time.:param client: The OpenAI client object.
-    :param thread_id: The ID of the thread.
-    :param run_id: The ID of the run.
-    :param sleep_interval: Time in seconds to wait between checks.
-    """
-    while True:
-        try:
-            run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run_id)
-            if run.completed_at:
-                elapsed_time = run.completed_at - run.created_at
-                formatted_elapsed_time = time.strftime(
-                    "%H:%M:%S", time.gmtime(elapsed_time)
-                )
-                # This just tells us how long it took to complete/run
-                print(f"Run completed in {formatted_elapsed_time}")
-                logging.info(f"Run completed in {formatted_elapsed_time}")
-                # Get messages here once Run is completed!
-                messages = client.beta.threads.messages.list(thread_id=thread_id)
-                last_message = messages.data[0]
-                response = last_message.content[0].text.value
-                #Printing the respose
-                print(f"Assistant Response: {response}")
+    # run time / response / Error message / message to user while waiting
+    def wait_for_run_completion(client, thread_id, run_id, sleep_interval=5):
+        """
+
+        Waits for a run to complete and prints the elapsed time.:param client: The OpenAI client object.
+        :param thread_id: The ID of the thread.
+        :param run_id: The ID of the run.
+        :param sleep_interval: Time in seconds to wait between checks.
+        """
+        while True:
+            try:
+                run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run_id)
+                if run.completed_at:
+                    elapsed_time = run.completed_at - run.created_at
+                    formatted_elapsed_time = time.strftime(
+                        "%H:%M:%S", time.gmtime(elapsed_time)
+                    )
+                    # This just tells us how long it took to complete/run
+                    print(f"Run completed in {formatted_elapsed_time}")
+                    logging.info(f"Run completed in {formatted_elapsed_time}")
+                    # Get messages here once Run is completed!
+                    messages = client.beta.threads.messages.list(thread_id=thread_id)
+                    last_message = messages.data[0]
+                    response = last_message.content[0].text.value
+                    #Printing the respose
+                    print(f"Assistant Response: {response}")
+                    break
+            except Exception as e:
+                logging.error(f"An error occurred while retrieving the run: {e}")
                 break
-        except Exception as e:
-            logging.error(f"An error occurred while retrieving the run: {e}")
-            break
-        logging.info("Waiting for run to complete...")
-        time.sleep(sleep_interval)
+            logging.info("Waiting for run to complete...")
+            time.sleep(sleep_interval)
 
-# Running 
-wait_for_run_completion(client=client, thread_id=thread_id, run_id=run.id)
+    # Running 
+    wait_for_run_completion(client=client, thread_id=thread_id, run_id=run.id)
 
-# Show logs to see the Steps the AI goes through
+    # Show logs to see the Steps the AI goes through
 
-run_steps = client.beta.threads.runs.steps.list(
-    thread_id=thread_id,
-    run_id=run.id
-)
-print(f"steps:: {run_steps.data}")
+    run_steps = client.beta.threads.runs.steps.list(
+        thread_id=thread_id,
+        run_id=run.id
+    )
+    print(f"steps:: {run_steps.data}")
