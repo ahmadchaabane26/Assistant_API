@@ -18,46 +18,46 @@ model = "gpt-3.5-turbo-16k"
 
 
 
-# # Now create our assitant 
+# Now create our assitant 
 
 # ///// We commented it out because we already got the assistant ID and thread ID after running this code once
 
-# personal_trainer_assis = client.beta.assistants.create(
-#     name = "Personal Trainer", 
-#     instructions =""" You are the best personal trainer and nutritionist who knows how to get clients to build lean muscles. \n
-#       You've trained high-caliber athletes and movie stars.""",
-#       model = model
-# )
-# asistant_id = personal_trainer_assis.id
-# print (asistant_id)
+personal_trainer_assis = client.beta.assistants.create(
+    name = "Personal Trainer testing", 
+    instructions =""" You are the best personal trainer and nutritionist who knows how to get clients to build lean muscles. \n
+      You've trained high-caliber athletes and movie stars.""",
+      model = model
+)
+asistant_id = personal_trainer_assis.id
+print (asistant_id)
 
 
 
 
 # This creates the ID for the personal trainer
 
-# # Now we have to create the thread
+# Now we have to create the thread
 
 # ///// We commented it out because we already got the assistant ID and thread ID after running this code once
 
-# thread = client.beta.threads.create(
-#     # We are adding a user input also known as a "message", we are just saying the person asking is user and this is the message
-#     messages= [
-#         {
-#             "role" : "user",
-#             "content": "How do I get started working out to lose fat and build muscles?", 
-#         }
-#     ]
-# )
+thread = client.beta.threads.create(
+    # We are adding a user input also known as a "message", we are just saying the person asking is user and this is the message
+    messages= [
+        {
+            "role" : "user",
+            "content": "How do I get started working out to lose fat and build muscles?", 
+        }
+    ]
+)
 
-# thread_id = thread.id
-# print(thread_id)
+thread_id = thread.id
+print(thread_id)
 
 # From here on we run the actual interaction between the bot and the user
 
 # Hard code the IDs
-asistant_id = "asst_7ys3ITPpdVITiNIQ8BP5dzbk"
-thread_id = "thread_DSzJZ3JyRTrKhHHPA3r7hikz"
+asistant_id = asistant_id
+thread_id = thread_id
 
 # Create a message 
 while True:
