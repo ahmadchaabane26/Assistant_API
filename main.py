@@ -1,14 +1,22 @@
 import openai
+import os
 from dotenv import find_dotenv, load_dotenv
 import time
 import logging
 from datetime import datetime
+import requests
+import json
+import streamlit as st
 
 # The approach taken to this is manually coding the process done on  asistant as if it was openAI website. We are making sure the same process is being coded.
 
 load_dotenv()
 # popenai.api_key = os.environ.get(""")
 # This step includes reqtieriving the key and welcoming the AI
+
+news_api_key = os.environ.get("NEWS_API_KEY")
+# getting news api
+
 
 client = openai.OpenAI()
 # you can add key directly if not inputed in and .env file
@@ -17,112 +25,240 @@ model = "gpt-3.5-turbo-16k"
 # Specfying which AI we want to be used
 
 
-
-# Now create our assitant 
-
-# ///// We commented it out because we already got the assistant ID and thread ID after running this code once
-
-personal_trainer_assis = client.beta.assistants.create(
-    name = "Personal Trainer testing", 
-    instructions =""" You are the best personal trainer and nutritionist who knows how to get clients to build lean muscles. \n
-      You've trained high-caliber athletes and movie stars.""",
-      model = model
-)
-asistant_id = personal_trainer_assis.id
-print (asistant_id)
-
-
-
-
-# This creates the ID for the personal trainer
-
-# Now we have to create the thread
-
-# ///// We commented it out because we already got the assistant ID and thread ID after running this code once
-
-thread = client.beta.threads.create(
-    # We are adding a user input also known as a "message", we are just saying the person asking is user and this is the message
-    messages= [
-        {
-            "role" : "user",
-            "content": "How do I get started working out to lose fat and build muscles?", 
-        }
-    ]
-)
-
-thread_id = thread.id
-print(thread_id)
-
-# From here on we run the actual interaction between the bot and the user
-
-# Hard code the IDs
-asistant_id = asistant_id
-thread_id = thread_id
-
-# Create a message 
-while True:
-    message = input("How can I help your fitness journey (Type 'done' to exit): ")
-
-        # Check if user wants to exit
-    if message.lower() == "done":
-        print("Thank you for using me! Good luck on your journey!")
-        break
-
-    #this is where you can change the message
-    message = client.beta.threads.messages.create(
-        thread_id= thread_id,
-        role="user",
-        content=message
+#retriving topic
+def get_news(topic):
+    url =(
+    # in this part we are defining "everything" as the end point and allowing the AI model to search the web with the requirments of topics that are 5 pages long"
+        f"https://newsapi.org/v2/everything?q={topic}&apiKey={news_api_key}&pageSize=5"
+        #Searching the web through this url
     )
 
-    # To run our assistant 
+    try:
+        #Making a GET request to the News API
+        response = requests.get(url) 
+        # Checking if the response status code is 200 (OK)
+        if response.status_code == 200:
+            # Formatting the JSON response for better readability
+            new = json.dumps(response.json(), indent =4)
+             # Loading the JSON response into a Python dictionary
+            news_json = json.loads(new)
+            # Assigning the news JSON data to a variable
+            data = news_json
 
-    run = client.beta.threads.runs.create(
-        thread_id=thread_id,
-        assistant_id=asistant_id,
-        instructions="Please address the user as Ahmad Chaabane",
-    )
+            #access all fiels == loops
+            # extracting all data from json data 
+            status = data["status"] # updating status
+            total_results = data["totalResults"]
+            articles = data["articles"]
+            final_news = [] # Creating an empty list to store formatted multiple news articles
 
-    # run time / response / Error message / message to user while waiting
-    def wait_for_run_completion(client, thread_id, run_id, sleep_interval=5):
-        """
+            #loop through these, and extracting all info from the article
+            for article in articles:
+                source_name = article["source"]["name"]
+                author = article["author"]
+                title = article["title"]
+                description = article["description"]
+                url =article["url"]
+                content = article["content"]
+                # Format the article details in bullet points
+                article_bullet_points = [
+                    f"- Author: {author}",
+                    f"- Source: {source_name}",
+                    f"- Description: {description}",
+                    f"- Read more: [{title}]({url})"
+                ]
+                # Join the bullet points into a single string
+                article_formatted = "\n".join(article_bullet_points)
+                final_news.append(article_formatted)
 
-        Waits for a run to complete and prints the elapsed time.:param client: The OpenAI client object.
-        :param thread_id: The ID of the thread.
-        :param run_id: The ID of the run.
-        :param sleep_interval: Time in seconds to wait between checks.
-        """
-        while True:
-            try:
-                run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run_id)
-                if run.completed_at:
-                    elapsed_time = run.completed_at - run.created_at
-                    formatted_elapsed_time = time.strftime(
-                        "%H:%M:%S", time.gmtime(elapsed_time)
-                    )
-                    # This just tells us how long it took to complete/run
-                    print(f"Run completed in {formatted_elapsed_time}")
-                    logging.info(f"Run completed in {formatted_elapsed_time}")
-                    # Get messages here once Run is completed!
-                    messages = client.beta.threads.messages.list(thread_id=thread_id)
-                    last_message = messages.data[0]
-                    response = last_message.content[0].text.value
-                    #Printing the respose
-                    print(f"Assistant Response: {response}")
+            return final_news
+        else: # if status is not 200 (ok) then return an empty list
+            return []
+    except requests.exceptions.RequestException as e: #handing error
+        print("Error occured during API request",e)
+
+
+#allowing the AI to summarize the article in points
+class AssistantManager:
+    thread_id = "thread_IMbHUHR3olmM5AbxGE6UsH6J"
+    assistant_id = "asst_LjZUbZzoLZ2wNBFsL92z2THW"
+
+    def __init__(self, model: str = model)-> None:
+        self.client = client
+        self.model = model
+        self.assistant = None
+        self.thread = None
+        self.run = None
+        self.summary = None
+
+        # Reteriving existing assistant and thread if IDs are already created
+        # We dont want the backend created multiple assistants
+        if AssistantManager.assistant_id:
+            self.assistant = self.client.beta.assistants.retrieve(
+                assistant_id= AssistantManager.assistant_id
+            )
+        if AssistantManager.thread_id:
+            self.thread = self.client.beta.threads.retrieve(
+                thread_id = AssistantManager.thread_id
+            )
+    # Making an assistant if there isnt one
+    def create_assistant(self, name, instructions, tools):
+        if not self.assistant:
+            assistant_obj = self.client.beta.assistants.create(
+                name =name,
+                instructions = instructions,
+                tools = tools,
+                model = self.model
+            )
+            AssistantManager.assistant_id = assistant_obj.id
+            self.assistant = assistant_obj
+            print(f"AssisID:::: {self.assistant.id}")
+    # Creating thread ID
+    def create_thread(self):
+        if not self.thread:
+            thread_obj = self.client.beta.threads.create()
+            AssistantManager.thread_id = thread_obj.id
+            self.thread = thread_obj
+            print(f"ThreadID::: {self.thread.id}")
+    # Add messages to thread
+    def add_messages_to_thread(self, role, content):
+        if self.thread:
+            self.client.beta.threads.messages.create(
+                thread_id=self.thread.id,
+                role = role,
+                content = content
+            )
+    #passing instrcutions 
+    def run_assistant(self, instructions):
+        if self.thread and self.assistant:
+            self.run = self.client.beta.threads.runs.create(
+                thread_id= self.thread.id,
+                assistant_id= self.assistant.id,
+                instructions= instructions
+            )
+    def process_message(self):
+        if self.thread:
+            messages = self.client.beta.threads.messages.list(
+                thread_id=self.thread.id
+            )
+            summary =[]
+
+            last_messages = messages.data[0]
+            role = last_messages.role
+            response = last_messages.content[0].text.value
+            summary.append(response)
+
+            self.summary = "\n".join(summary)
+            print(f"SUMMARY------> {role.capitalize()}: ==> {response}")
+    #this is where everything is happened the funtion is being pulled
+    def call_required_functions(self, required_actions):
+        if not self.run:
+            return 
+        tools_outputs = []
+
+        for action in required_actions["tool_calls"]:
+            func_name = action["function"]["name"]
+            arguments = json.loads(action["function"]["arguments"])
+
+            if func_name == "get_news":
+                output = get_news(topic=arguments["topic"])
+                print(f"STUFFFF;;;;{output}")
+                final_str =""
+                for item in output:
+                    final_str += "".join(item)
+                tools_outputs.append({"tool_call_id": action["id"], "output": final_str})
+            else:
+                raise ValueError(f"Unknown function: {func_name}")
+
+        print("Submitting outputs back to the assistant...")
+        self.client.beta.threads.runs.submit_tool_outputs(
+            thread_id =self.thread.id,
+            run_id=self.run.id,
+            tool_outputs =tools_outputs
+        )
+    #for streamlit
+    def get_summary(self):
+        return self.summary
+    def wait_for_completion(self):
+        if self.thread and self.run:
+            while True:
+                time.sleep(5)
+                run_status = self.client.beta.threads.runs.retrieve(
+                    thread_id=self.thread.id,
+                    run_id=self.run.id
+                )
+                print(f"RUN STATU::: {run_status.model_dump_json(indent=4)}")
+
+                if run_status.status == "completed":
+                    self.process_message()
                     break
-            except Exception as e:
-                logging.error(f"An error occurred while retrieving the run: {e}")
-                break
-            logging.info("Waiting for run to complete...")
-            time.sleep(sleep_interval)
+                elif run_status.status == "requires_action":
+                    print("FUNCTION CALLING NOW...")
+                    self.call_required_functions(
+                        required_actions=run_status.required_action.submit_tool_outputs.model_dump()
+                    )
+    #run the steps
+    def run_steps(self):
+        run_steps = self.client.beta.threads.runs.steps.list(
+            thread_id= self.thread.id,
+            run_id = self.run.id
+        )
+        print(f"RUN-Steps::: {run_steps}")
+        return run_steps.data
 
-    # Running 
-    wait_for_run_completion(client=client, thread_id=thread_id, run_id=run.id)
+def main():
+    # news = get_news("bitcoin")
+    # print(news[0])
 
-    # Show logs to see the Steps the AI goes through
+    manager = AssistantManager()
 
-    run_steps = client.beta.threads.runs.steps.list(
-        thread_id=thread_id,
-        run_id=run.id
-    )
-    print(f"steps:: {run_steps.data}")
+    # Streamlit interface
+    st.title("News Summarizer")
+
+    with st.form(key="user_input_form"):
+        instructions = st.text_input("Enter topic:")
+        submit_button = st.form_submit_button(label="Run Assistant")
+
+        if submit_button:
+            manager.create_assistant(
+                name="News Summarizer",
+                instructions="You are a personal article summarizer Assistant who knows how to take a list of article's titles and descriptions and then write a short summary of all the news articles",
+                tools=[
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "get_news",
+                            "description": "Get the list of articles/news for the given topic",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "topic": {
+                                        "type": "string",
+                                        "description": "The topic for the news, e.g. bitcoin",
+                                    }
+                                },
+                                "required": ["topic"],
+                            },
+                        },
+                    }
+                ],
+            )
+            manager.create_thread()
+
+            # Add the message and run the assistant
+            manager.add_messages_to_thread(
+                role="user", content=f"summarize the news on this topic {instructions}?"
+            )
+            manager.run_assistant(instructions="Summarize the news")
+
+            # Wait for completions and process messages
+            manager.wait_for_completion()
+
+            summary = manager.get_summary()
+
+            st.write(summary)
+
+            st.text("Run Steps:")
+            st.code(manager.run_steps(), line_numbers=True)
+if __name__ == "__main__":
+    main()
