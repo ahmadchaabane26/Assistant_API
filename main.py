@@ -53,24 +53,27 @@ def get_news(topic):
             final_news = [] # Creating an empty list to store formatted multiple news articles
 
             #loop through these, and extracting all info from the article
+            count = 0
             for article in articles:
-                source_name = article["source"]["name"]
-                author = article["author"]
-                title = article["title"]
-                description = article["description"]
-                url =article["url"]
-                content = article["content"]
-                # Format the article details in bullet points
-                article_bullet_points = [
-                    f"- Author: {author}",
-                    f"- Source: {source_name}",
-                    f"- Description: {description}",
-                    f"- Read more: [{title}]({url})"
-                ]
-                # Join the bullet points into a single string
-                article_formatted = "\n".join(article_bullet_points)
-                final_news.append(article_formatted)
-
+                if "title" in article and "description" in article and "source" in article and "url" in article:
+                    source_name = article["source"]["name"]
+                    author = article["author"]
+                    title = article["title"]
+                    description = article["description"]
+                    url =article["url"]
+                    content = f"""
+                    - Title: {title}
+                    - Author: {author}
+                    - Source: {source_name}
+                    - Description: {description}
+                    - Read more: [{title}]({url})
+                    """
+                    final_news.append(content)
+                    count +=1
+                else:
+                    continue
+                if count == 5:
+                    break
             return final_news
         else: # if status is not 200 (ok) then return an empty list
             return []
