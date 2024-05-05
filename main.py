@@ -61,13 +61,13 @@ def get_news(topic):
                     title = article["title"]
                     description = article["description"]
                     url =article["url"]
-                    content = f"""
-                    - Title: {title}
-                    - Author: {author}
-                    - Source: {source_name}
-                    - Description: {description}
-                    - Read more: [{title}]({url})
-                    """
+                    content = {
+                    'Title': title,
+                    'Author': author,
+                    'Source': source_name,
+                    'Description': description,
+                    'Read more': url
+                    }
                     final_news.append(content)
                     count +=1
                 else:
@@ -263,5 +263,7 @@ def main():
 
             st.text("Run Steps:")
             st.code(manager.run_steps(), line_numbers=True)
+
+
 if __name__ == "__main__":
     main()
