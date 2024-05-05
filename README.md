@@ -1,60 +1,31 @@
-# Personal Trainer Assistant using OpenAI
+# Assistant API Projects
 
-This project implements a personal trainer and nutritionist assistant using OpenAI's GPT-3.5 model. The assistant provides guidance on workouts and nutrition to help users build lean muscles.
+This repository contains three main branches, each representing a distinct project developed using the Assistant API from OpenAI. 
 
-## Setup
+## Branches
 
-1. **Install Dependencies:**
-   ```bash
-   pip install openai python-dotenv
-   ```
+1. **Assistant API Personal Trainer Bot**
 
-2. **Obtain API Key:**
-   - Obtain an API key from OpenAI.
-   - Create a `.env` file in the project root with the following content:
-     ```
-     OPENAI_API_KEY=your_api_key_here
-     ```
+   This branch features an AI-powered personal fitness trainer bot developed using Python and OpenAI's platform. The bot assists users with personalized workout routines and goals.
 
-3. **Create Virtual Environment (Optional):**
-   ```bash
-   python -m venv myenv
-   ```
+2. **Assistant API News Summarizer Bot with Function Calling**
 
-4. **Activate Virtual Environment:**
-   - On Windows:
-     ```bash
-     venv\Scripts\activate
-     ```
-   - On macOS/Linux:
-     ```bash
-     source venv/bin/activate
-     ```
+   The branch focuses on a bot that searches and summarizes news articles based on user inputs. It is implemented using Python programming and function points methodology.
 
-5. **Run the Script:**
-   ```bash
-   python personal_trainer_assistant.py
-   ```
+3. **Assistant API Study Buddy Bot with Code Interpreter and File Uploads**
 
-## Steps to Create the Assistant
+   This branch hosts a Study Buddy bot designed to facilitate interactive learning sessions. It incorporates a code interpreter and allows users to upload documents for contextualized discussions. 
 
-1. **Set Up Project Environment:**
-   - Load the OpenAI API key from the `.env` file.
-   - Initialize the OpenAI client with the API key and specify the model.
+## Usage
 
-2. **Create the Assistant:**
-   - Create the assistant with a name, description, and model.
+Each branch contains its respective project. To use a specific project, navigate to the corresponding branch and follow the instructions provided in the README file within that branch.
 
-3. **Create a Thread:**
-   - Create a thread for the assistant with a user message.
+## Getting Started
 
-4. **Send a Message:**
-   - Send a message to the thread and wait for the assistant's response.
+To get started with any of the projects, follow the steps outlined in the README file of the respective branch.
 
-5. **Display Response:**
-   - Display the assistant's response and completion time.
+## Contributors
 
-## Notes
+- [Ahmad Chaabane](https://github.com/ahmadchaabane26) - Project Developer
 
-- This project demonstrates how to create and interact with an OpenAI assistant programmatically.
-- Make sure to handle errors and exceptions gracefully in a production environment.
+
