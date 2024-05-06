@@ -126,7 +126,7 @@ st.write("Learn fast by chatting with your documents")
 # Check sessions
 if st.session_state.start_chat:
     if "openai_model" not in st.session_state:
-        st.session_state.openai_model = "gpt-4-1106-preview"
+        st.session_state.openai_model = "gpt-3.5-turbo"
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
